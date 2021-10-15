@@ -1,7 +1,28 @@
+import {useState} from "react"
 import logo from './logo.svg';
 import './App.css';
 
+import { ethers } from "ethers"
+import Greeter from "./artifacts/contracts/Greeter.sol/Greeter.json"
+
+
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+
 function App() {
+  const [greeting, setGreeting] = useState()
+
+  async function requestAccount() {
+    
+  }
+
+  async function fetchGreeting() {
+
+  }
+
+  async function setGreeting() {
+
+  }
+
   return (
     <div className="App">
       <header className="App-header">
