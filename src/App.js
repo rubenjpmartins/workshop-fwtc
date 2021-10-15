@@ -2,51 +2,69 @@ import {useState} from "react"
 import './App.css';
 
 import { ethers } from "ethers"
-import Greeter from "./artifacts/contracts/Greeter.sol/Greeter.json"
+import Token from "./artifacts/contracts/Token.sol/Token.json"
 
 
 const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
 function App() {
-  const [greeting, setGreeting] = useState("")
+  const [transferAmount, setTransferAmount] = useState(0);
+  const [balance, setBalance] = useState("0");
+  const [targetAddress, setTargetAddress] = useState("");
 
   async function requestAccount() {
     await window.ethereum.request({ method: 'eth_requestAccounts' });
   }
 
-  async function fetchGreeting() {
+  async function fetchBalance() {
     if(typeof window.ethereum !== 'undefined') {
+      await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, Greeter.abi, provider)
+      const signer = provider.getSigner()
+      const account = await signer.getAddress()
+      const contract = new ethers.Contract(contractAddress, Token.abi, provider)
       try {
-        const data = await contract.greet()
-        console.log(data)
+        const balance = await contract.balanceOf(account)
+        setBalance(ethers.utils.commify(ethers.utils.formatUnits(balance, "wei")))
       } catch(err) {
         console.log("Error: ", err)
       }
     }
   }
 
-  async function changeGreeting() {
+  async function transfer() {
     if(typeof window.ethereum !== 'undefined') {
       await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner()
-      const contract = new ethers.Contract(contractAddress, Greeter.abi, signer)
-      const tx = await contract.setGreeting(greeting)
-      await tx.wait()
-      fetchGreeting()
+      const contract = new ethers.Contract(contractAddress, Token.abi, provider)
+      try {
+        await contract.connect(signer).transfer(targetAddress, transferAmount)
+      } catch(err) {
+        console.log("Error: ", err)
+      }
     }
   }
 
   return (
     <div className="App">
-      <header className="App-header">
-        <input type="text" value={greeting} placeholder="input something" onChange={(e) => setGreeting(e.target.value)}/>
-        <button style={{ marginTop: 20 }} onClick={() => changeGreeting()}>CHANGE</button>
-        <button style={{ marginTop: 20 }} onClick={() => fetchGreeting()}>FETCH</button>
-        <button style={{ marginTop: 20 }} onClick={() => requestAccount()}>CONNECT</button>
-      </header>
+      <div style={{ marginTop: 20 }}>
+        <span>BALANCE: {balance}</span>
+        <button onClick={() => fetchBalance()}>FETCH</button>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <label style={{ marginRight: 20 }}>AMOUNT</label>
+        <input value={transferAmount} type="number" onChange={(e) => setTransferAmount(e.target.value)} />
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <label style={{ marginRight: 20 }}>ADDRESS</label>
+        <input value={targetAddress} type="text" onChange={(e) => setTargetAddress(e.target.value)} />
+      </div>
+
+      <button style={{ marginTop: 20 }} onClick={() => transfer()}>TRANSFER</button>
+      <button style={{ marginTop: 20 }} onClick={() => requestAccount()}>CONNECT</button>
     </div>
   );
 }
