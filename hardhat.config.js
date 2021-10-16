@@ -8,6 +8,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
+const deployer = {
+  mnemonic:
+    process.env.MNEMONIC ||
+    "test test test test test test test test test test test junk"
+};
+
 module.exports = {
   solidity: "0.8.4",
   paths: {
@@ -16,6 +22,13 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: 1337
+    },
+    alfajores: {
+      url: "https://alfajores-forno.celo-testnet.org",
+      accounts: deployer,
+      chainId: 44787,
+      gasPrice: 0.5 * 10 ** 9,
+      gas: 8000000,
     }
   }
 };
